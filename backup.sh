@@ -4,12 +4,8 @@
 ### It works with local, USB, NFS and rsync backups. ###
 ### Tested and working with a Synology NAS. ###
 
-## At the moment you need to install sshpass (apt install sshpass)
-# TODO: Remove the plain text password and use keys.
-
 ## User variables
-declare -A directories=(["webs"]="/var/www" ["sites"]="/etc/apache2/sites-available" ["databases"]="/var/databases") # Array with directories to backup (there are some examples).
-## ATTENTION! The databases path is used in mysql backup and rsync, so don't delete it!
+declare -A directories=(["webs"]="/var/www" ["sites"]="/etc/apache2/sites-available") # Array with directories to backup (there are some examples).
 localDestination="/srv/backups" # Directory where the backups are saved.
 data=$(date +%Y%m%d)
 dia=$(date +%d)
@@ -17,7 +13,8 @@ weekday=$(date +%u)
 
 mysql=1 # Set to 1 to backup mysql databases.
 
-rback=0 # Set to 1 to enable remote backups.
+rback=0 # Set to 1 to enable remote backups with plain password or 2 to enable remote backups with keys.
+rkey="/home/user/keys/backups.key" # Key for remote login if rback=2.
 ruser="backup" # Backup remote user.
 rpassword="backuppassword"
 rdestination="/volume1/Backups" # Remote backups directory.
@@ -26,8 +23,9 @@ fulldestination="${ruser}@${remoteserver}:${rdestination}"
 
 ## Backup MySQL function.
 function db () {
+	directories+=(["databases"]="/var/databases")
 	user="backup" # Mysql backup user.
-	password="backuppassword" # MySQL backup user password.
+	password="password" # MySQL backup user password.
 	savedir="/var/databases"
 	if [ ! -d "$savedir" ]
 	then
@@ -52,14 +50,14 @@ function backup () {
 	fi
 	if [ $6 -eq 1 ]
 	then
-		db
+		db # Call function db() to export databases.
 	fi
 	
 	## Files
 	declare -a dir=("${!2}")
 	for i in ${!dir[@]}
 	do
-		sshpass -p "$rpassword" rsync -av --delete ${dir[$i]} ${1}/daily
+		${SSH} rsync -av --delete ${dir[$i]} ${1}/daily
 	done
 	
 	### Weekly backup ###
@@ -67,7 +65,7 @@ function backup () {
 	then
 		for i in ${!dir[@]}
 		do
-			sshpass -p "$rpassword" rsync -av --delete ${dir[$i]} ${1}/weekly
+			${SSH} "$rpassword" rsync -av --delete ${dir[$i]} ${1}/weekly
 		done
 	fi
 	
@@ -76,15 +74,15 @@ function backup () {
 	then
 		for i in ${!dir[@]}
         do
-			sshpass -p "$rpassword" rsync -avz --delete ${dir[$i]} ${1}/monthly
+			${SSH} rsync -avz --delete ${dir[$i]} ${1}/monthly
 		done
 	fi
-
-			
 }
 
 if [ $rback -eq 0 ]
 then
+	SSH="" # No ssh command needed.
+
 	## Check if directories exist.
 	if [ ! -d "$localDestination/daily" ]
 	then
@@ -104,5 +102,11 @@ then
 
 elif [ $rback -eq 1 ]
 then
-	backup $fulldestination directories[@] $data $dia $weekday $mysql
+	SSH="sshpass -p ${rpassword}" # Using sshpass.
+	backup $fulldestination directories[@] $data $dia $weekday $mysql # Call the function.
+
+elif [ $rback -eq 2 ]
+then
+	SSH="ssh -i ${rkey}" # Using ssh key pairs.
+	backup $fulldestination directories[@] $data $dia $weekday $mysql # Call the function.
 fi
