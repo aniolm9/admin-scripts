@@ -1,0 +1,25 @@
+#!/bin/bash
+
+## You need to install "inotify-tools".
+
+MONITOR=/path/to/monitor/directory # Directory to monitor.
+SCRIPT=/path/to/script # Script to run.
+
+function copy () {
+    lsof $file > /dev/null 2>&1
+	if [ $? -eq 0 ] # The file is still being copied
+	then
+        sleep 5
+        copy
+    else
+        #echo $file
+        $SCRIPT
+    fi
+}
+
+# Check if a file has been created.
+inotifywait -m $MONITOR -e create -e moved_to |
+    while read path action file; do
+        copy # Call the function copy.
+    done
+
