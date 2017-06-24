@@ -10,11 +10,8 @@ fi
 defaultUser=$(id -nu 1000)
 sources="/etc/apt/sources.list"
 bits=0
-declare -a BasicStuff=("build-essential" "checkinstall" "make" "automake" "cmake" "autoconf" "git" "git-core" "rar" "unrar" "p7zip-full" "p7zip-rar" "sudo");
+declare -a BasicStuff=("build-essential" "checkinstall" "make" "automake" "cmake" "autoconf" "git" "git-core" "rar" "unrar" "p7zip-full" "p7zip-rar" "sudo" "dirmngr");
 declare -a ExtraStuff=(); #Extra programs to be installed.
-
-## Install dirmngr
-apt-get -y install dirmngr
 
 ## Change repositories
 cp $sources ${sources}.bak
