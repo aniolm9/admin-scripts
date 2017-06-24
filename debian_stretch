@@ -51,11 +51,6 @@ then
     apt-get -y install linux-headers-686
 fi
 
-
-## Accept Java license
-echo debconf shared/accepted-oracle-license-v1-1 select true | debconf-set-selections
-echo debconf shared/accepted-oracle-license-v1-1 seen true | debconf-set-selections
-
 ## Install packages
 for i in "${BasicStuff[@]}"
 do
