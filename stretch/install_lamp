@@ -1,0 +1,29 @@
+#!/bin/bash
+
+### This script installs a LAMP server in (almost) any Debian-based distro. You must run it as root. ###
+
+## Notes:
+# Installs Apache2, MySQL/MariaDB, PHP and phpMyAdmin.
+# Enables the htaccess files.
+
+if [ "$(id -u)" != "0" ]
+then
+   echo "This script must be run as root." 1>&2
+   exit 1
+fi
+
+## Variables & arrays
+declare -a Packages=("apache2" "ssl-cert" "mariadb-server" "php7.0" "libapache2-mod-php7.0" "php7.0-mysql" "php7.0-gd" "php7.0-opcache");
+
+# Package installation
+for i in "${Packages[@]}"
+do
+    apt-get -y install $i
+done
+
+# Phpmyadmin and secure installation
+mysql_secure_installation
+apt-get -y install phpmyadmin
+
+# Restart Apache2
+systemctl restart apache2
