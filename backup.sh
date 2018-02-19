@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# This script is totally bullshit. You should use rsnapshot instead.
+
 ### This script backups the directories set in the directories array and also backups all MySQL databases if you want it to. ###
 ### It works with local, USB, NFS and rsync backups. ###
 ### Tested and working with a Synology NAS. ###
