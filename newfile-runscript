@@ -6,7 +6,7 @@ MONITOR=/path/to/monitor/directory # Directory to monitor.
 SCRIPT=/path/to/script # Script to run.
 
 function copy () {
-    lsof $file > /dev/null 2>&1
+    lsof $path/$file > /dev/null 2>&1
 	if [ $? -eq 0 ] # The file is still being copied
 	then
         sleep 5
